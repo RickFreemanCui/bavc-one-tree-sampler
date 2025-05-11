@@ -11,8 +11,8 @@ set(CMAKE_CXX_EXTENSIONS OFF) # Optional: Disable compiler-specific extensions
 # Add executable sources
 add_executable(my_app main.cpp tree_utils.cpp sampler.cpp)
 
-# Optional: Add include directories
-# target_include_directories(my_app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# Add include directories
+target_include_directories(my_app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Optional: Link libraries
 # target_link_libraries(my_app PRIVATE some_library)

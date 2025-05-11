@@ -9,6 +9,7 @@
 #include <stdexcept> // For potential error handling
 #include <optional>
 #include <limits>    // For std::numeric_limits
+#include <chrono>    // For timing measurements
 
 // Helper function to calculate 2^n safely using long long
 long long power_of_2(int n) {
@@ -85,6 +86,10 @@ Distribution sample_once(int num_leaf) {
 
 
 Distribution sample(int num_leaf, int steps) {
+    using namespace std::chrono;
+    long long total_sample_once_time = 0;
+    auto total_start = high_resolution_clock::now();
+    
     if (num_leaf <= 0 || steps < 0) {
         return {}; // Return empty distribution for invalid input
     }
@@ -97,7 +102,7 @@ Distribution sample(int num_leaf, int steps) {
 
     for (int i = 0; i < steps; ++i) {
         // Optional: Print progress
-        std::cout << i << "-th step (out of " << steps << ")" << std::endl;
+        std::cerr << i << "-th step (out of " << steps << ")" << std::endl;
         int remaining_leaves = num_leaf - i; // Remaining leaves after i splits
 
         Distribution new_dist;
@@ -114,7 +119,11 @@ Distribution sample(int num_leaf, int steps) {
                 auto dp_it = dp.find(subtree_size);
                 if (dp_it == dp.end()) {
                     // Not in cache, compute and store
+
+                    auto start = high_resolution_clock::now().time_since_epoch().count();
                     subtree_dist = sample_once(subtree_size);
+                    auto end = high_resolution_clock::now().time_since_epoch().count();
+                    total_sample_once_time += (end - start) / 1000; // convert to microseconds
                     dp[subtree_size] = subtree_dist;
                 } else {
                     // Found in cache
@@ -154,6 +163,17 @@ Distribution sample(int num_leaf, int steps) {
         dist = new_dist; // Update the distribution for the next step
 
     }
+
+    auto total_end = high_resolution_clock::now();
+    auto total_duration = duration_cast<microseconds>(total_end - total_start);
+
+    std::cerr << "Total sample execution time: " 
+              << total_duration.count() / 1000.0
+              << " ms" << std::endl;
+
+    std::cerr << "Total sample_once execution time: " 
+              << total_sample_once_time 
+              << " ms" << std::endl;
     return dist;
 }
 
